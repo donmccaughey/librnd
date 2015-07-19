@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 static bool
@@ -122,13 +123,14 @@ rnd_alloc_jrand48(unsigned short const state[3])
     struct rnd *rnd = malloc(sizeof(struct rnd));
     if (!rnd) return NULL;
     
-    unsigned short *user_state = malloc(sizeof state);
+    size_t state_size = sizeof(unsigned short[3]);
+    unsigned short *user_state = malloc(state_size);
     if (!user_state) {
         free(rnd);
         return NULL;
     }
     
-    memcpy(user_state, state, sizeof state);
+    memcpy(user_state, state, state_size);
     rnd->user_data = user_state;
     rnd->next_uniform_value = next_jrand48_uniform_value;
     rnd->free_user_data = free;

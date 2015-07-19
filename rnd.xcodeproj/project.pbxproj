@@ -286,7 +286,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_PEDANTIC = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Debug;
 		};
@@ -294,7 +296,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_WARN_PEDANTIC = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Release;
 		};
@@ -305,14 +309,18 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_WARN_PEDANTIC = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Debug;
 		};
 		D45178341B5B0B1600F26844 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_WARN_PEDANTIC = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				WARNING_CFLAGS = "-Wall";
 			};
 			name = Release;
 		};
@@ -335,6 +343,7 @@
 				D45178291B5B0B0400F26844 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		D45178321B5B0B1600F26844 /* Build configuration list for PBXNativeTarget "test" */ = {
 			isa = XCConfigurationList;
@@ -343,6 +352,7 @@
 				D45178341B5B0B1600F26844 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
