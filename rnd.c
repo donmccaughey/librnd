@@ -31,12 +31,12 @@
 
 
 static uint32_t
-next_arc4_uniform_value(void *user_data, uint32_t upper_bound);
+next_arc4random_uniform_value(void *user_data, uint32_t upper_bound);
 
 
 struct rnd *const global_rnd = &((struct rnd){
     .user_data=NULL,
-    .next_uniform_value=next_arc4_uniform_value,
+    .next_uniform_value=next_arc4random_uniform_value,
     .free_user_data=NULL,
 });
 
@@ -54,22 +54,7 @@ alloc_with_next_uniform_value(uint32_t (*next_uniform_value)(void *, uint32_t))
 
 
 static uint32_t
-next_jrand48_uniform_value(void *user_data, uint32_t upper_bound)
-{
-    unsigned short *state = user_data;
-    uint32_t modulo_bias = UINT32_MAX % upper_bound;
-    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
-    uint32_t value;
-    do {
-        value = (uint32_t)jrand48(state);
-    } while (value > largest_multiple);
-    
-    return value % upper_bound;
-}
-
-
-static uint32_t
-next_arc4_uniform_value(void *user_data, uint32_t upper_bound)
+next_arc4random_uniform_value(void *user_data, uint32_t upper_bound)
 {
     return arc4random_uniform(upper_bound);
 }
@@ -78,7 +63,7 @@ next_arc4_uniform_value(void *user_data, uint32_t upper_bound)
 struct rnd *
 rnd_alloc(void)
 {
-    return alloc_with_next_uniform_value(next_arc4_uniform_value);
+    return alloc_with_next_uniform_value(next_arc4random_uniform_value);
 }
 
 
@@ -121,6 +106,21 @@ struct rnd *
 rnd_alloc_fake_min(void)
 {
     return alloc_with_next_uniform_value(next_fake_min_uniform_value);
+}
+
+
+static uint32_t
+next_jrand48_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    unsigned short *state = user_data;
+    uint32_t modulo_bias = UINT32_MAX % upper_bound;
+    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
+    uint32_t value;
+    do {
+        value = (uint32_t)jrand48(state);
+    } while (value > largest_multiple);
+    
+    return value % upper_bound;
 }
 
 
