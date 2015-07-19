@@ -29,15 +29,15 @@ main(int argc, char const *argv[])
     print_random_numbers("jrand48", rnd);
     rnd_free(rnd);
     
-    rnd = rnd_alloc_fake(rnd_fake_type_min);
+    rnd = rnd_alloc_fake_min();
     print_random_numbers("fake min", rnd);
     rnd_free(rnd);
     
-    rnd = rnd_alloc_fake(rnd_fake_type_median);
+    rnd = rnd_alloc_fake_median();
     print_random_numbers("fake median", rnd);
     rnd_free(rnd);
     
-    rnd = rnd_alloc_fake(rnd_fake_type_max);
+    rnd = rnd_alloc_fake_max();
     print_random_numbers("fake max", rnd);
     rnd_free(rnd);
     

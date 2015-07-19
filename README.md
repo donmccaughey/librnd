@@ -78,17 +78,20 @@ pseudorandom numbers, but you want the same stream every time.
 
 ### fake
 
-The `rnd_alloc_fake()` function allocates one of three different types of fake
-pseudorandom number generators.  When called with `rnd_fake_type_min`, 
-`rnd_next_uniform_value()` will always return zero for that `struct rnd` 
-pointer.  When called with `rnd_fake_type_max`, `rnd_next_uniform_value()` will
-always return the given upper bound minus one.  The `rnd_fake_type_median` 
-option always returns the given upper bound divided by two, rounded down.
+The `rnd_alloc_fake_X()` group of functions allocate different types of fake
+pseudorandom number generators.
+
+- `rnd_alloc_fake_min()`: always returns zero
+- `rnd_alloc_fake_max()`: always returns the given upper bound minus one
+- `rnd_alloc_fake_median()`: always returns the given upper bound divided by 
+    two, rounded down.
+
+Here is an example of `rnd_alloc_fake_median()`:
 
     #include "rnd.h"
     ...
 
-    struct rnd *rnd = rnd_alloc_fake(rnd_fake_type_median);
+    struct rnd *rnd = rnd_alloc_fake_median();
 
     uint32_t number1 = rnd_next_uniform_value(rnd, 100);
     // number1 will always be 50

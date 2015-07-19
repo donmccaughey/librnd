@@ -24,7 +24,6 @@
 
 #include "rnd.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -42,28 +41,15 @@ struct rnd *const global_rnd = &((struct rnd){
 });
 
 
-static bool
-is_valid_fake_type(enum rnd_fake_type type)
+static struct rnd *
+alloc_with_next_uniform_value(uint32_t (*next_uniform_value)(void *, uint32_t))
 {
-    switch (type) {
-        case rnd_fake_type_min: return true;
-        case rnd_fake_type_median: return true;
-        case rnd_fake_type_max: return true;
-        default: return false;
-    }
-}
-
-
-static uint32_t
-next_fake_uniform_value(void *user_data, uint32_t upper_bound)
-{
-    enum rnd_fake_type *type = user_data;
-    switch (*type) {
-        case rnd_fake_type_min: return 0;
-        case rnd_fake_type_median: return upper_bound / 2;
-        case rnd_fake_type_max: return upper_bound - 1;
-        default: return 0;
-    }
+    struct rnd *rnd = calloc(1, sizeof(struct rnd));
+    if (!rnd) return NULL;
+    
+    rnd->next_uniform_value = next_uniform_value;
+    
+    return rnd;
 }
 
 
@@ -92,39 +78,49 @@ next_arc4_uniform_value(void *user_data, uint32_t upper_bound)
 struct rnd *
 rnd_alloc(void)
 {
-    struct rnd *rnd = calloc(1, sizeof(struct rnd));
-    if (!rnd) return NULL;
-    
-    rnd->next_uniform_value = next_arc4_uniform_value;
-    
-    return rnd;
+    return alloc_with_next_uniform_value(next_arc4_uniform_value);
+}
+
+
+static uint32_t
+next_fake_max_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    return upper_bound - 1;
 }
 
 
 struct rnd *
-rnd_alloc_fake(enum rnd_fake_type type)
+rnd_alloc_fake_max(void)
 {
-    assert(is_valid_fake_type(type));
-    if (!is_valid_fake_type(type)) {
-        errno = EINVAL;
-        return NULL;
-    }
-    
-    struct rnd *rnd = malloc(sizeof(struct rnd));
-    if (!rnd) return NULL;
-    
-    enum rnd_fake_type *user_type = malloc(sizeof(enum rnd_fake_type));
-    if (!user_type) {
-        free(rnd);
-        return NULL;
-    }
-    
-    *user_type = type;
-    rnd->user_data = user_type;
-    rnd->next_uniform_value = next_fake_uniform_value;
-    rnd->free_user_data = free;
-    
-    return rnd;
+    return alloc_with_next_uniform_value(next_fake_max_uniform_value);
+}
+
+
+static uint32_t
+next_fake_median_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    return upper_bound / 2;
+}
+
+
+struct rnd *
+rnd_alloc_fake_median(void)
+{
+    return alloc_with_next_uniform_value(next_fake_median_uniform_value);
+}
+
+
+static uint32_t
+next_fake_min_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    return 0;
+}
+
+
+struct rnd *
+rnd_alloc_fake_min(void)
+{
+    return alloc_with_next_uniform_value(next_fake_min_uniform_value);
 }
 
 
@@ -164,14 +160,6 @@ rnd_free(struct rnd *rnd)
 uint32_t
 rnd_next_uniform_value(struct rnd *rnd, uint32_t upper_bound)
 {
-    assert(rnd);
-    if (!rnd) return 0;
-    
-    assert(upper_bound);
     if (!upper_bound) return 0;
-    
-    assert(rnd->next_uniform_value);
-    if (!rnd->next_uniform_value) return 0;
-    
     return rnd->next_uniform_value(rnd->user_data, upper_bound);
 }

@@ -29,14 +29,6 @@
 #include <stdint.h>
 
 
-enum rnd_fake_type {
-    rnd_fake_type_unknown = 0,
-    rnd_fake_type_min,
-    rnd_fake_type_median,
-    rnd_fake_type_max,
-};
-
-
 struct rnd {
     void *user_data;
     uint32_t (*next_uniform_value)(void *user_data, uint32_t upper_bound);
@@ -51,7 +43,13 @@ struct rnd *
 rnd_alloc(void);
 
 struct rnd *
-rnd_alloc_fake(enum rnd_fake_type type);
+rnd_alloc_fake_max(void);
+
+struct rnd *
+rnd_alloc_fake_median(void);
+
+struct rnd *
+rnd_alloc_fake_min(void);
 
 struct rnd *
 rnd_alloc_jrand48(unsigned short const state[3]);
