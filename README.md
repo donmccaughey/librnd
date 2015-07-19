@@ -35,6 +35,17 @@ The `rnd_next_uniform_value()` function produces a pseudorandom number
 uniformly from zero (inclusive) to the given upper bound (exclusive).
 [Modulo bias][1] is accounted for.
 
+The `global_rnd` variable points to a predefined instance of `struct rnd` that
+uses the arc4 generator.  `global_rnd` doesn't need to be allocated or freed,
+so it's useful as a step in refactoring code that uses a function like `rand()`
+or `arc4random()` to use _rnd_.
+
+    #include "rnd.h"
+    ...
+
+    uint32_t number = rnd_next_uniform_value(global_rnd, 100);
+    // number is in the interval [0, 99]
+
 
 Alternate Generators
 --------------------

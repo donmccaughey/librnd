@@ -31,6 +31,17 @@
 #include <string.h>
 
 
+static uint32_t
+next_arc4_uniform_value(void *user_data, uint32_t upper_bound);
+
+
+struct rnd *const global_rnd = &((struct rnd){
+    .user_data=NULL,
+    .next_uniform_value=next_arc4_uniform_value,
+    .free_user_data=NULL,
+});
+
+
 static bool
 is_valid_fake_type(enum rnd_fake_type type)
 {
@@ -72,7 +83,7 @@ next_jrand48_uniform_value(void *user_data, uint32_t upper_bound)
 
 
 static uint32_t
-next_uniform_value(void *user_data, uint32_t upper_bound)
+next_arc4_uniform_value(void *user_data, uint32_t upper_bound)
 {
     return arc4random_uniform(upper_bound);
 }
@@ -84,7 +95,7 @@ rnd_alloc(void)
     struct rnd *rnd = calloc(1, sizeof(struct rnd));
     if (!rnd) return NULL;
     
-    rnd->next_uniform_value = next_uniform_value;
+    rnd->next_uniform_value = next_arc4_uniform_value;
     
     return rnd;
 }
@@ -142,6 +153,7 @@ rnd_alloc_jrand48(unsigned short const state[3])
 void
 rnd_free(struct rnd *rnd)
 {
+    if (global_rnd == rnd) return;
     if (rnd && rnd->free_user_data) {
         rnd->free_user_data(rnd->user_data);
     }

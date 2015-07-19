@@ -44,6 +44,9 @@ struct rnd {
 };
 
 
+extern struct rnd *const global_rnd;
+
+
 struct rnd *
 rnd_alloc(void);
 

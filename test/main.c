@@ -19,12 +19,14 @@ print_random_numbers(char const *description, struct rnd *rnd)
 int
 main(int argc, char const *argv[])
 {
+    print_random_numbers("global", global_rnd);
+    
     struct rnd *rnd = rnd_alloc();
-    print_random_numbers("default real", rnd);
+    print_random_numbers("default", rnd);
     rnd_free(rnd);
     
     rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
-    print_random_numbers("jrand48 real", rnd);
+    print_random_numbers("jrand48", rnd);
     rnd_free(rnd);
     
     rnd = rnd_alloc_fake(rnd_fake_type_min);
