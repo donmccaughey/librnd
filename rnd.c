@@ -86,6 +86,28 @@ rnd_alloc(void)
 
 
 static uint32_t
+next_fake_ascending_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    uint32_t *ascending_value = user_data;
+    return (*ascending_value)++ % upper_bound;
+}
+
+
+struct rnd *
+rnd_alloc_fake_ascending(uint32_t initial_value)
+{
+    struct rnd *rnd = alloc_with_user_data_size(sizeof(uint32_t));
+    if (!rnd) return NULL;
+    
+    uint32_t *user_initial_value = rnd->user_data;
+    *user_initial_value = initial_value;
+    rnd->next_uniform_value = next_fake_ascending_uniform_value;
+    
+    return rnd;
+}
+
+
+static uint32_t
 next_fake_fixed_uniform_value(void *user_data, uint32_t upper_bound)
 {
     uint32_t *fixed_value = user_data;

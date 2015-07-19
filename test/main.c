@@ -49,5 +49,9 @@ main(int argc, char const *argv[])
     print_random_numbers("fake fixed at 17", rnd);
     rnd_free(rnd);
     
+    rnd = rnd_alloc_fake_ascending(3);
+    print_random_numbers("fake ascending from 3", rnd);
+    rnd_free(rnd);
+    
     return EXIT_SUCCESS;
 }
