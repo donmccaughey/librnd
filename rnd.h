@@ -43,6 +43,9 @@ struct rnd *
 rnd_alloc(void);
 
 struct rnd *
+rnd_alloc_fake_fixed(uint32_t fixed_value);
+
+struct rnd *
 rnd_alloc_fake_max(void);
 
 struct rnd *

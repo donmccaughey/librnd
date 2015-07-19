@@ -53,6 +53,24 @@ alloc_with_next_uniform_value(uint32_t (*next_uniform_value)(void *, uint32_t))
 }
 
 
+static struct rnd *
+alloc_with_user_data_size(size_t size)
+{
+    struct rnd *rnd = calloc(1, sizeof(struct rnd));
+    if (!rnd) return NULL;
+    
+    rnd->user_data = calloc(1, size);
+    if (!rnd->user_data) {
+        free(rnd);
+        return NULL;
+    }
+    
+    rnd->free_user_data = free;
+    
+    return rnd;
+}
+
+
 static uint32_t
 next_arc4random_uniform_value(void *user_data, uint32_t upper_bound)
 {
@@ -64,6 +82,28 @@ struct rnd *
 rnd_alloc(void)
 {
     return alloc_with_next_uniform_value(next_arc4random_uniform_value);
+}
+
+
+static uint32_t
+next_fake_fixed_uniform_value(void *user_data, uint32_t upper_bound)
+{
+    uint32_t *fixed_value = user_data;
+    return *fixed_value % upper_bound;
+}
+
+
+struct rnd *
+rnd_alloc_fake_fixed(uint32_t fixed_value)
+{
+    struct rnd *rnd = alloc_with_user_data_size(sizeof(uint32_t));
+    if (!rnd) return NULL;
+    
+    uint32_t *user_fixed_value = rnd->user_data;
+    *user_fixed_value = fixed_value;
+    rnd->next_uniform_value = next_fake_fixed_uniform_value;
+    
+    return rnd;
 }
 
 
@@ -127,20 +167,13 @@ next_jrand48_uniform_value(void *user_data, uint32_t upper_bound)
 struct rnd *
 rnd_alloc_jrand48(unsigned short const state[3])
 {
-    struct rnd *rnd = malloc(sizeof(struct rnd));
+    size_t state_size = sizeof(unsigned short[3]);
+    
+    struct rnd *rnd = alloc_with_user_data_size(state_size);
     if (!rnd) return NULL;
     
-    size_t state_size = sizeof(unsigned short[3]);
-    unsigned short *user_state = malloc(state_size);
-    if (!user_state) {
-        free(rnd);
-        return NULL;
-    }
-    
-    memcpy(user_state, state, state_size);
-    rnd->user_data = user_state;
+    memcpy(rnd->user_data, state, state_size);
     rnd->next_uniform_value = next_jrand48_uniform_value;
-    rnd->free_user_data = free;
     
     return rnd;
 }

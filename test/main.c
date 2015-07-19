@@ -41,5 +41,13 @@ main(int argc, char const *argv[])
     print_random_numbers("fake max", rnd);
     rnd_free(rnd);
     
+    rnd = rnd_alloc_fake_fixed(7);
+    print_random_numbers("fake fixed at 7", rnd);
+    rnd_free(rnd);
+    
+    rnd = rnd_alloc_fake_fixed(17);
+    print_random_numbers("fake fixed at 17", rnd);
+    rnd_free(rnd);
+    
     return EXIT_SUCCESS;
 }

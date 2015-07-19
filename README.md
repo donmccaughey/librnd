@@ -81,6 +81,7 @@ pseudorandom numbers, but you want the same stream every time.
 The `rnd_alloc_fake_X()` group of functions allocate different types of fake
 pseudorandom number generators.
 
+- `rnd_alloc_fake_fixed()`: always returns a fixed value (modulo the upper bound)
 - `rnd_alloc_fake_min()`: always returns zero
 - `rnd_alloc_fake_max()`: always returns the given upper bound minus one
 - `rnd_alloc_fake_median()`: always returns the given upper bound divided by 
