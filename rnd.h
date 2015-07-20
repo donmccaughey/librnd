@@ -64,7 +64,7 @@ void
 rnd_free(struct rnd *rnd);
 
 uint32_t
-rnd_next_uniform_value(struct rnd *rnd, uint32_t upper_bound);
+rnd_next_uniform_value(struct rnd *rnd, uint32_t exclusive_upper_bound);
 
 
 #endif

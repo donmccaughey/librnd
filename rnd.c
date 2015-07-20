@@ -31,7 +31,7 @@
 
 
 static uint32_t
-next_arc4random_uniform_value(void *user_data, uint32_t upper_bound);
+next_arc4random_uniform_value(void *user_data, uint32_t exclusive_upper_bound);
 
 
 struct rnd *const global_rnd = &((struct rnd){
@@ -72,9 +72,9 @@ alloc_with_user_data_size(size_t size)
 
 
 static uint32_t
-next_arc4random_uniform_value(void *user_data, uint32_t upper_bound)
+next_arc4random_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
-    return arc4random_uniform(upper_bound);
+    return arc4random_uniform(exclusive_upper_bound);
 }
 
 
@@ -86,10 +86,11 @@ rnd_alloc(void)
 
 
 static uint32_t
-next_fake_ascending_uniform_value(void *user_data, uint32_t upper_bound)
+next_fake_ascending_uniform_value(void *user_data,
+                                  uint32_t exclusive_upper_bound)
 {
     uint32_t *ascending_value = user_data;
-    return (*ascending_value)++ % upper_bound;
+    return (*ascending_value)++ % exclusive_upper_bound;
 }
 
 
@@ -108,10 +109,10 @@ rnd_alloc_fake_ascending(uint32_t initial_value)
 
 
 static uint32_t
-next_fake_fixed_uniform_value(void *user_data, uint32_t upper_bound)
+next_fake_fixed_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
     uint32_t *fixed_value = user_data;
-    return *fixed_value % upper_bound;
+    return *fixed_value % exclusive_upper_bound;
 }
 
 
@@ -130,9 +131,9 @@ rnd_alloc_fake_fixed(uint32_t fixed_value)
 
 
 static uint32_t
-next_fake_max_uniform_value(void *user_data, uint32_t upper_bound)
+next_fake_max_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
-    return upper_bound - 1;
+    return exclusive_upper_bound - 1;
 }
 
 
@@ -144,9 +145,9 @@ rnd_alloc_fake_max(void)
 
 
 static uint32_t
-next_fake_median_uniform_value(void *user_data, uint32_t upper_bound)
+next_fake_median_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
-    return upper_bound / 2;
+    return exclusive_upper_bound / 2;
 }
 
 
@@ -158,7 +159,7 @@ rnd_alloc_fake_median(void)
 
 
 static uint32_t
-next_fake_min_uniform_value(void *user_data, uint32_t upper_bound)
+next_fake_min_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
     return 0;
 }
@@ -172,17 +173,17 @@ rnd_alloc_fake_min(void)
 
 
 static uint32_t
-next_jrand48_uniform_value(void *user_data, uint32_t upper_bound)
+next_jrand48_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
 {
     unsigned short *state = user_data;
-    uint32_t modulo_bias = UINT32_MAX % upper_bound;
+    uint32_t modulo_bias = UINT32_MAX % exclusive_upper_bound;
     uint32_t largest_multiple = UINT32_MAX - modulo_bias;
     uint32_t value;
     do {
         value = (uint32_t)jrand48(state);
     } while (value > largest_multiple);
     
-    return value % upper_bound;
+    return value % exclusive_upper_bound;
 }
 
 
@@ -213,8 +214,8 @@ rnd_free(struct rnd *rnd)
 
 
 uint32_t
-rnd_next_uniform_value(struct rnd *rnd, uint32_t upper_bound)
+rnd_next_uniform_value(struct rnd *rnd, uint32_t exclusive_upper_bound)
 {
-    if (!upper_bound) return 0;
-    return rnd->next_uniform_value(rnd->user_data, upper_bound);
+    if (exclusive_upper_bound < 2) return 0;
+    return rnd->next_uniform_value(rnd->user_data, exclusive_upper_bound);
 }
