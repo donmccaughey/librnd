@@ -14,7 +14,7 @@ print_random_numbers(char const *description,
            description,
            (unsigned long)inclusive_lower_bound,
            (unsigned long)inclusive_upper_bound);
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 20; ++i) {
         uint32_t n = rnd_next_uniform_value_in_range(rnd,
                                                      inclusive_lower_bound,
                                                      inclusive_upper_bound);

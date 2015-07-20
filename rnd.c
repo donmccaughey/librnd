@@ -31,23 +31,25 @@
 
 
 static uint32_t
-next_arc4random_uniform_value(void *user_data, uint32_t exclusive_upper_bound);
+next_arc4random_uniform_value_in_range(void *user_data,
+                                       uint32_t inclusive_lower_bound,
+                                       uint32_t inclusive_upper_bound);
 
 
 struct rnd *const global_rnd = &((struct rnd){
     .user_data=NULL,
-    .next_uniform_value=next_arc4random_uniform_value,
+    .next_uniform_value_in_range=next_arc4random_uniform_value_in_range,
     .free_user_data=NULL,
 });
 
 
 static struct rnd *
-alloc_with_next_uniform_value(uint32_t (*next_uniform_value)(void *, uint32_t))
+alloc_with_next_uniform_value_in_range(uint32_t (*next_uniform_value_in_range)(void *, uint32_t, uint32_t))
 {
     struct rnd *rnd = calloc(1, sizeof(struct rnd));
     if (!rnd) return NULL;
     
-    rnd->next_uniform_value = next_uniform_value;
+    rnd->next_uniform_value_in_range = next_uniform_value_in_range;
     
     return rnd;
 }
@@ -72,25 +74,40 @@ alloc_with_user_data_size(size_t size)
 
 
 static uint32_t
-next_arc4random_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_arc4random_uniform_value_in_range(void *user_data,
+                                       uint32_t inclusive_lower_bound,
+                                       uint32_t inclusive_upper_bound)
 {
-    return arc4random_uniform(exclusive_upper_bound);
+    if (0 == inclusive_lower_bound && UINT32_MAX == inclusive_upper_bound) {
+        return arc4random();
+    } else {
+        uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                                  - inclusive_lower_bound
+                                                  + 1;
+        return inclusive_lower_bound
+             + arc4random_uniform(normalized_exclusive_upper_bound);
+    }
 }
 
 
 struct rnd *
 rnd_alloc(void)
 {
-    return alloc_with_next_uniform_value(next_arc4random_uniform_value);
+    return alloc_with_next_uniform_value_in_range(next_arc4random_uniform_value_in_range);
 }
 
 
 static uint32_t
-next_fake_ascending_uniform_value(void *user_data,
-                                  uint32_t exclusive_upper_bound)
+next_fake_ascending_uniform_value_in_range(void *user_data,
+                                           uint32_t inclusive_lower_bound,
+                                           uint32_t inclusive_upper_bound)
 {
     uint32_t *ascending_value = user_data;
-    return (*ascending_value)++ % exclusive_upper_bound;
+    uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                              - inclusive_lower_bound
+                                              + 1;
+    return inclusive_lower_bound
+         + ((*ascending_value)++ % normalized_exclusive_upper_bound);
 }
 
 
@@ -102,17 +119,22 @@ rnd_alloc_fake_ascending(uint32_t initial_value)
     
     uint32_t *user_initial_value = rnd->user_data;
     *user_initial_value = initial_value;
-    rnd->next_uniform_value = next_fake_ascending_uniform_value;
+    rnd->next_uniform_value_in_range = next_fake_ascending_uniform_value_in_range;
     
     return rnd;
 }
 
 
 static uint32_t
-next_fake_fixed_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_fake_fixed_uniform_value_in_range(void *user_data,
+                                       uint32_t inclusive_lower_bound,
+                                       uint32_t inclusive_upper_bound)
 {
     uint32_t *fixed_value = user_data;
-    return *fixed_value % exclusive_upper_bound;
+    uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                              - inclusive_lower_bound
+                                              + 1;
+    return inclusive_lower_bound + (*fixed_value % normalized_exclusive_upper_bound);
 }
 
 
@@ -124,66 +146,94 @@ rnd_alloc_fake_fixed(uint32_t fixed_value)
     
     uint32_t *user_fixed_value = rnd->user_data;
     *user_fixed_value = fixed_value;
-    rnd->next_uniform_value = next_fake_fixed_uniform_value;
+    rnd->next_uniform_value_in_range = next_fake_fixed_uniform_value_in_range;
     
     return rnd;
 }
 
 
 static uint32_t
-next_fake_max_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_fake_max_uniform_value_in_range(void *user_data,
+                                     uint32_t inclusive_lower_bound,
+                                     uint32_t inclusive_upper_bound)
 {
-    return exclusive_upper_bound - 1;
+    return inclusive_upper_bound;
 }
 
 
 struct rnd *
 rnd_alloc_fake_max(void)
 {
-    return alloc_with_next_uniform_value(next_fake_max_uniform_value);
+    return alloc_with_next_uniform_value_in_range(next_fake_max_uniform_value_in_range);
 }
 
 
 static uint32_t
-next_fake_median_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_fake_median_uniform_value_in_range(void *user_data,
+                                        uint32_t inclusive_lower_bound,
+                                        uint32_t inclusive_upper_bound)
 {
-    return exclusive_upper_bound / 2;
+    uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                              - inclusive_lower_bound
+                                              + 1;
+    return inclusive_lower_bound + (normalized_exclusive_upper_bound / 2);
 }
 
 
 struct rnd *
 rnd_alloc_fake_median(void)
 {
-    return alloc_with_next_uniform_value(next_fake_median_uniform_value);
+    return alloc_with_next_uniform_value_in_range(next_fake_median_uniform_value_in_range);
 }
 
 
 static uint32_t
-next_fake_min_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_fake_min_uniform_value_in_range(void *user_data,
+                                     uint32_t inclusive_lower_bound,
+                                     uint32_t inclusive_upper_bound)
 {
-    return 0;
+    return inclusive_lower_bound;
 }
 
 
 struct rnd *
 rnd_alloc_fake_min(void)
 {
-    return alloc_with_next_uniform_value(next_fake_min_uniform_value);
+    return alloc_with_next_uniform_value_in_range(next_fake_min_uniform_value_in_range);
 }
 
 
 static uint32_t
-next_jrand48_uniform_value(void *user_data, uint32_t exclusive_upper_bound)
+next_jrand48_value(void *user_data)
 {
     unsigned short *state = user_data;
-    uint32_t modulo_bias = UINT32_MAX % exclusive_upper_bound;
+    return (uint32_t)jrand48(state);
+}
+
+
+static uint32_t
+next_jrand48_uniform_value(void *user_data, uint32_t normalized_exclusive_upper_bound)
+{
+    uint32_t modulo_bias = UINT32_MAX % normalized_exclusive_upper_bound;
     uint32_t largest_multiple = UINT32_MAX - modulo_bias;
     uint32_t value;
     do {
-        value = (uint32_t)jrand48(state);
+        value = next_jrand48_value(user_data);
     } while (value > largest_multiple);
-    
-    return value % exclusive_upper_bound;
+    return value % normalized_exclusive_upper_bound;
+}
+
+
+static uint32_t
+next_jrand48_uniform_value_in_range(void *user_data,
+                                    uint32_t inclusive_lower_bound,
+                                    uint32_t inclusive_upper_bound)
+{
+    uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                              - inclusive_lower_bound
+                                              + 1;
+    return inclusive_lower_bound
+         + next_jrand48_uniform_value(user_data, normalized_exclusive_upper_bound);
 }
 
 
@@ -196,7 +246,7 @@ rnd_alloc_jrand48(unsigned short const state[3])
     if (!rnd) return NULL;
     
     memcpy(rnd->user_data, state, state_size);
-    rnd->next_uniform_value = next_jrand48_uniform_value;
+    rnd->next_uniform_value_in_range = next_jrand48_uniform_value_in_range;
     
     return rnd;
 }
@@ -214,10 +264,20 @@ rnd_free(struct rnd *rnd)
 
 
 uint32_t
-rnd_next_uniform_value(struct rnd *rnd, uint32_t exclusive_upper_bound)
+rnd_next_value(struct rnd *rnd)
 {
-    if (exclusive_upper_bound < 2) return 0;
-    return rnd->next_uniform_value(rnd->user_data, exclusive_upper_bound);
+    return rnd->next_uniform_value_in_range(rnd->user_data, 0, UINT32_MAX);
+}
+
+
+uint32_t
+rnd_next_uniform_value(struct rnd *rnd,
+                       uint32_t normalized_exclusive_upper_bound)
+{
+    if (normalized_exclusive_upper_bound <= 1) return 0;
+    return rnd->next_uniform_value_in_range(rnd->user_data,
+                                            0,
+                                            normalized_exclusive_upper_bound - 1);
 }
 
 
@@ -229,14 +289,7 @@ rnd_next_uniform_value_in_range(struct rnd *rnd,
     if (inclusive_upper_bound <= inclusive_lower_bound) {
         return inclusive_lower_bound;
     }
-    if (UINT32_MAX == inclusive_upper_bound && 0 == inclusive_lower_bound) {
-        // TODO: return full range
-        return inclusive_upper_bound;
-    }
-    uint32_t exclusive_upper_bound = inclusive_upper_bound
-                                   - inclusive_lower_bound
-                                   + 1;
-    return rnd_next_uniform_value(rnd, exclusive_upper_bound)
-         + inclusive_lower_bound;
-    
+    return rnd->next_uniform_value_in_range(rnd->user_data,
+                                            inclusive_lower_bound,
+                                            inclusive_upper_bound);
 }

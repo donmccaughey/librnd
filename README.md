@@ -20,26 +20,32 @@ range.  Here is the basic usage pattern:
     
     struct rnd *rnd = rnd_alloc();
     
-    uint32_t number = rnd_next_uniform_value(rnd, 100);
-    // number is in the interval [0, 99]
+    uint32_t number = rnd_next_uniform_value_in_range(rnd, 1, 100);
+    // number is in the interval [1, 100]
     
     ...
     rnd_free(rnd);
 
 The `struct rnd` pointer holds information about the pseudorandom number 
 generator being used.  The `rnd_alloc()` function returns a `struct rnd` that 
-uses `arc4random_uniform()` as its generator; it provides high quality 
-pseudorandom numbers and is automatically seeded from `/dev/urandom`.
+uses `arc4random()` as its generator; it provides high quality pseudorandom 
+numbers and is automatically seeded from `/dev/urandom`.
 
-The `rnd_next_uniform_value()` function produces a pseudorandom number 
-uniformly from zero (inclusive) to the given exclusive upper bound.
+The `rnd_next_uniform_value_in_range()` function produces a pseudorandom number 
+uniformly from an inclusive lower bound to an inclusive upper bound.
 [Modulo bias][1] is accounted for.
 
-The `rnd_next_uniform_value_in_range()` function produces a number uniformly
-in a given inclusive range:
+The `rnd_next_uniform_value()` function produces a number uniformly between 
+zero (inclusive) and a given exclusive upper bound:
 
-    uint32_t number = rnd_next_uniform_value_in_range(rnd, 1, 6);
-    // number is in the interval [1, 6]
+    uint32_t number = rnd_next_uniform_value(rnd, 100);
+    // number is in the interval [0, 99]
+
+The `rnd_next_value()` function produces a number between zero (inclusive) and 
+`UINT32_MAX` (inclusive):
+
+    uint32_t number = rnd_next_value(rnd);
+    // number is in the interval [0, 4_294_967_295]
 
 The `global_rnd` variable points to a predefined instance of `struct rnd` that
 uses the arc4 generator.  `global_rnd` doesn't need to be allocated or freed,
@@ -87,15 +93,16 @@ pseudorandom numbers, but you want the same stream every time.
 The `rnd_alloc_fake_X()` group of functions allocate different types of fake
 pseudorandom number generators.
 
-- `rnd_alloc_fake_ascending()`: the returned value (modulo the exclusive upper 
-    bound) increments on each call to `rnd_next_uniform_value()`, from a given 
-    starting value
-- `rnd_alloc_fake_fixed()`: always returns a fixed value (modulo the exclusive 
-    upper bound)
+- `rnd_alloc_fake_ascending()`: the returned value increments for each returned 
+    value, from a given starting value; for bounded values, the returned value
+    is modulo the range of possible values
+- `rnd_alloc_fake_fixed()`: always returns a fixed value, modulo the range of
+    possible values
 - `rnd_alloc_fake_min()`: always returns zero
-- `rnd_alloc_fake_max()`: always returns the exclusive upper bound minus one
-- `rnd_alloc_fake_median()`: always returns the exclusive upper bound divided 
-    by two, rounded down.
+- `rnd_alloc_fake_max()`: always returns the largest possible value
+- `rnd_alloc_fake_median()`: always returns the median value of the range;
+    for a range with an even number of possible values, returns the higher of
+    the two middle values
 
 Here is an example of `rnd_alloc_fake_median()`:
 
