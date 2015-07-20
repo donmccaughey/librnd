@@ -224,14 +224,19 @@ rnd_next_uniform_value(struct rnd *rnd, uint32_t exclusive_upper_bound)
 uint32_t
 rnd_next_uniform_value_in_range(struct rnd *rnd,
                                 uint32_t inclusive_lower_bound,
-                                uint32_t exclusive_upper_bound)
+                                uint32_t inclusive_upper_bound)
 {
-    if (exclusive_upper_bound <= inclusive_lower_bound) {
+    if (inclusive_upper_bound <= inclusive_lower_bound) {
         return inclusive_lower_bound;
     }
-    uint32_t normalized_exclusive_upper_bound = exclusive_upper_bound
-                                              - inclusive_lower_bound;
-    return rnd_next_uniform_value(rnd, normalized_exclusive_upper_bound)
+    if (UINT32_MAX == inclusive_upper_bound && 0 == inclusive_lower_bound) {
+        // TODO: return full range
+        return inclusive_upper_bound;
+    }
+    uint32_t exclusive_upper_bound = inclusive_upper_bound
+                                   - inclusive_lower_bound
+                                   + 1;
+    return rnd_next_uniform_value(rnd, exclusive_upper_bound)
          + inclusive_lower_bound;
     
 }

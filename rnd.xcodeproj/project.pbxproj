@@ -39,10 +39,10 @@
 		D45178231B5B0B0400F26844 /* librnd.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = librnd.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		D451782E1B5B0B1500F26844 /* test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = test; sourceTree = BUILT_PRODUCTS_DIR; };
 		D45178301B5B0B1600F26844 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
-		D45178351B5B0B5800F26844 /* rnd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = rnd.c; sourceTree = "<group>"; };
-		D45178361B5B0B5800F26844 /* rnd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = rnd.h; sourceTree = "<group>"; };
+		D45178351B5B0B5800F26844 /* rnd.c */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.c; path = rnd.c; sourceTree = "<group>"; tabWidth = 4; };
+		D45178361B5B0B5800F26844 /* rnd.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = rnd.h; sourceTree = "<group>"; tabWidth = 4; };
 		D451783C1B5B23C300F26844 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		D451783D1B5B23C300F26844 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		D451783D1B5B23C300F26844 /* README.md */ = {isa = PBXFileReference; indentWidth = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; tabWidth = 4; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */

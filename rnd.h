@@ -69,7 +69,7 @@ rnd_next_uniform_value(struct rnd *rnd, uint32_t exclusive_upper_bound);
 uint32_t
 rnd_next_uniform_value_in_range(struct rnd *rnd,
                                 uint32_t inclusive_lower_bound,
-                                uint32_t exclusive_upper_bound);
+                                uint32_t inclusive_upper_bound);
 
 
 #endif
