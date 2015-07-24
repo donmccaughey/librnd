@@ -93,13 +93,13 @@ pseudorandom numbers, but you want the same stream every time.
 The `rnd_alloc_fake_X()` group of functions allocate different types of fake
 pseudorandom number generators.
 
-- `rnd_alloc_fake_ascending()`: the returned value increments for each returned 
-    value, from a given starting value; for bounded values, the returned value
+- `rnd_alloc_fake_ascending()`: the returned value increments for each call, 
+    from a given starting value; for bounded values, the returned value
     is modulo the range of possible values
 - `rnd_alloc_fake_fixed()`: always returns a fixed value, modulo the range of
     possible values
-- `rnd_alloc_fake_min()`: always returns zero
-- `rnd_alloc_fake_max()`: always returns the largest possible value
+- `rnd_alloc_fake_min()`: always returns the smallest value in the range
+- `rnd_alloc_fake_max()`: always returns the largest value in the range
 - `rnd_alloc_fake_median()`: always returns the median value of the range;
     for a range with an even number of possible values, returns the higher of
     the two middle values
