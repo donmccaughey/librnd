@@ -71,5 +71,14 @@ main(int argc, char const *argv[])
     print_random_numbers("rnd_alloc_fake_ascending(5)", rnd, 10, 19);
     rnd_free(rnd);
     
+    int numbers[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    size_t numbers_count = sizeof numbers / sizeof numbers[0];
+    rnd_shuffle(global_rnd, numbers, numbers_count, sizeof(int));
+    printf("shuffled numbers: ");
+    for (int i = 0; i < (int)numbers_count; ++i) {
+        printf("%i, ", numbers[i]);
+    }
+    printf("\n\n");
+    
     return EXIT_SUCCESS;
 }

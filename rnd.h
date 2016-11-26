@@ -77,5 +77,12 @@ rnd_next_uniform_value_in_range(struct rnd *rnd,
                                 uint32_t inclusive_lower_bound,
                                 uint32_t inclusive_upper_bound);
 
+// Fisher–Yates shuffle
+void
+rnd_shuffle(struct rnd *rnd,
+            void *items,
+            size_t item_count,
+            size_t item_size);
+
 
 #endif

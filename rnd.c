@@ -24,7 +24,6 @@
 
 #include "rnd.h"
 
-#include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -292,4 +291,28 @@ rnd_next_uniform_value_in_range(struct rnd *rnd,
     return rnd->next_uniform_value_in_range(rnd->user_data,
                                             inclusive_lower_bound,
                                             inclusive_upper_bound);
+}
+
+
+void
+rnd_shuffle(struct rnd *rnd,
+            void *items,
+            size_t item_count,
+            size_t item_size)
+{
+    if (!rnd) return;
+    if (!items) return;
+    if (item_count < 2) return;
+    if (!item_size) return;
+    
+    char temp[item_size];
+    for (uint32_t i = 0; i < item_count - 1; ++i) {
+        uint32_t exclusive_upper_bound = (uint32_t)item_count - i;
+        uint32_t j = rnd_next_uniform_value(rnd, exclusive_upper_bound);
+        void *item_i = (char *)items + (i * item_size);
+        void *item_j = (char *)items + ((i + j) * item_size);
+        memcpy(temp, item_i, item_size);
+        memcpy(item_i, item_j, item_size);
+        memcpy(item_j, temp, item_size);
+    }
 }
