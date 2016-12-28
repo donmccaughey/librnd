@@ -26,6 +26,7 @@
 #define RND_H_INCLUDED
 
 
+#include <stddef.h>
 #include <stdint.h>
 
 

@@ -1,6 +1,13 @@
 .DS_Store
 .idea
+aclocal.m4
+autom4te.cache
+autoscan.log
 build
+build-aux
+config.h.*
+configure
+Makefile.in
 project.xcworkspace
 tmp
 xcuserdata

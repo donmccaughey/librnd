@@ -121,6 +121,35 @@ Here is an example of `rnd_alloc_fake_median()`:
     rnd_free(rnd);
 
 
+Building rnd
+------------
+
+_rnd_ is written in C99 and should build on most modern POSIX compatible
+operating systems with a recent GCC or LLVM compiler.
+
+The source contains just two files: `rnd.h` and `rnd.c`. 
+The included build system produces a static library, `librnd.a`.
+
+### From Repository Source
+
+You must have GNU Autoconf 2.69 or later and Automate 1.14 or later installed
+
+    $ autoreconf -i
+    $ mkdir tmp && cd tmp
+    $ ../configure
+    $ make
+    $ sudo make install
+
+### From Source Distribution Tarball
+
+The `rnd` distribution supports the standard GNU build steps.
+
+    $ mkdir tmp && cd tmp
+    $ ../configure
+    $ make
+    $ sudo make install
+
+
 
 
 [1]: https://en.wikipedia.org/wiki/Fisher–Yates_shuffle#Modulo_bias
