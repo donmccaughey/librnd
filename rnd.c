@@ -29,15 +29,45 @@
 #include <string.h>
 
 
+#if HAVE_ARC4RANDOM && HAVE_ARC4RANDOM_UNIFORM
+
+#define RND_HAVE_ARC4 1
+#define RND_NEXT_UNIFORM_VALUE_IN_RANGE next_arc4_uniform_value_in_range
+
 static uint32_t
 next_arc4random_uniform_value_in_range(void *user_data,
                                        uint32_t inclusive_lower_bound,
-                                       uint32_t inclusive_upper_bound);
+                                       uint32_t inclusive_upper_bound)
+{
+    if (0 == inclusive_lower_bound && UINT32_MAX == inclusive_upper_bound) {
+        return arc4random();
+    } else {
+        uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                                  - inclusive_lower_bound
+                                                  + 1;
+        return inclusive_lower_bound
+             + arc4random_uniform(normalized_exclusive_upper_bound);
+    }
+}
+
+
+
+#else
+
+#define RND_HAVE_ARC4 0 
+#define RND_NEXT_UNIFORM_VALUE_IN_RANGE next_mrand48_uniform_value_in_range
+
+static uint32_t
+next_mrand48_uniform_value_in_range(void *user_data,
+                                    uint32_t inclusive_lower_bound,
+                                    uint32_t inclusive_upper_bound);
+
+#endif
 
 
 struct rnd *const global_rnd = &((struct rnd){
     .user_data=NULL,
-    .next_uniform_value_in_range=next_arc4random_uniform_value_in_range,
+    .next_uniform_value_in_range=RND_NEXT_UNIFORM_VALUE_IN_RANGE,
     .free_user_data=NULL,
 });
 
@@ -60,10 +90,12 @@ alloc_with_user_data_size(size_t size)
     struct rnd *rnd = calloc(1, sizeof(struct rnd));
     if (!rnd) return NULL;
     
-    rnd->user_data = calloc(1, size);
-    if (!rnd->user_data) {
-        free(rnd);
-        return NULL;
+    if (size) {
+        rnd->user_data = calloc(1, size);
+        if (!rnd->user_data) {
+            free(rnd);
+            return NULL;
+        }
     }
     
     rnd->free_user_data = free;
@@ -72,27 +104,10 @@ alloc_with_user_data_size(size_t size)
 }
 
 
-static uint32_t
-next_arc4random_uniform_value_in_range(void *user_data,
-                                       uint32_t inclusive_lower_bound,
-                                       uint32_t inclusive_upper_bound)
-{
-    if (0 == inclusive_lower_bound && UINT32_MAX == inclusive_upper_bound) {
-        return arc4random();
-    } else {
-        uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
-                                                  - inclusive_lower_bound
-                                                  + 1;
-        return inclusive_lower_bound
-             + arc4random_uniform(normalized_exclusive_upper_bound);
-    }
-}
-
-
 struct rnd *
 rnd_alloc(void)
 {
-    return alloc_with_next_uniform_value_in_range(next_arc4random_uniform_value_in_range);
+    return alloc_with_next_uniform_value_in_range(RND_NEXT_UNIFORM_VALUE_IN_RANGE);
 }
 
 
@@ -251,6 +266,51 @@ rnd_alloc_jrand48(unsigned short const state[3])
 }
 
 
+static uint32_t
+next_mrand48_value(void *user_data)
+{
+    return (uint32_t)mrand48();
+}
+
+
+static uint32_t
+next_mrand48_uniform_value(void *user_data, uint32_t normalized_exclusive_upper_bound)
+{
+    uint32_t modulo_bias = UINT32_MAX % normalized_exclusive_upper_bound;
+    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
+    uint32_t value;
+    do {
+        value = next_mrand48_value(user_data);
+    } while (value > largest_multiple);
+    return value % normalized_exclusive_upper_bound;
+}
+
+
+static uint32_t
+next_mrand48_uniform_value_in_range(void *user_data,
+                                    uint32_t inclusive_lower_bound,
+                                    uint32_t inclusive_upper_bound)
+{
+    uint32_t normalized_exclusive_upper_bound = inclusive_upper_bound
+                                              - inclusive_lower_bound
+                                              + 1;
+    return inclusive_lower_bound
+         + next_mrand48_uniform_value(user_data, normalized_exclusive_upper_bound);
+}
+
+
+struct rnd *
+rnd_alloc_mrand48(void)
+{
+    struct rnd *rnd = alloc_with_user_data_size(0);
+    if (!rnd) return NULL;
+    
+    rnd->next_uniform_value_in_range = next_mrand48_uniform_value_in_range;
+    
+    return rnd;
+}
+
+
 void
 rnd_free(struct rnd *rnd)
 {
@@ -316,3 +376,4 @@ rnd_shuffle(struct rnd *rnd,
         memcpy(item_j, temp, item_size);
     }
 }
+

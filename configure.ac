@@ -28,7 +28,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_UINT32_T
 
 # Checks for library functions.
-AC_CHECK_FUNC([arc4random arc4random_uniform jrand48])
+AC_CHECK_FUNCS([arc4random arc4random_uniform jrand48 mrand48])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

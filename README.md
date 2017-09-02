@@ -7,8 +7,9 @@ A pseudorandom number generator (PRNG) abstraction for C99.
 
 Dependencies
 ------------
-`librnd` requires that `<stdlib.h>` defines the `arc4random()`, 
-`arc4random_uniform()` and `jrand48()` functions.
+`librnd` requires that `<stdlib.h>` defines the `mrand48()` and `jrand48()` 
+functions.  If `arc4random()` and `arc4random_uniform()` functions are 
+available, they are used in the default generator, otherwise `mrand48()` is used.
 
 Uniform Pseudorandom Integers
 -----------------------------
@@ -32,8 +33,7 @@ rnd_free(rnd);
 
 The `struct rnd` pointer holds information about the pseudorandom number 
 generator being used.  The `rnd_alloc()` function returns a `struct rnd` that 
-uses `arc4random()` as its generator; it provides high quality pseudorandom 
-numbers and is automatically seeded from `/dev/urandom`.
+uses `arc4random()` if available, or `mrand48()` otherwise.
 
 The `rnd_next_uniform_value_in_range()` function produces a pseudorandom number 
 uniformly from an inclusive lower bound to an inclusive upper bound.
@@ -70,10 +70,11 @@ uint32_t number = rnd_next_uniform_value(global_rnd, 100);
 Alternate Generators
 --------------------
 When testing or debugging, it can be useful to have control over the 
-pseudorandom numbers being generated.  `librnd` provides two alternate generators.
+pseudorandom numbers being generated.  `librnd` provides several alternate 
+generators.
 
 
-### jrand48
+### jrand48 and mrand48
 
 The `jrand48()` function generates a 32 bit pseudorandom integer using 
 generator state provided by the caller.  The `rnd_alloc_jrand48()` function
@@ -95,6 +96,10 @@ uint32_t number2 = rnd_next_uniform_value(rnd, 7);
 
 rnd_free(rnd);
 ```
+
+Similarly, `mrand48()` uses the same generator as `jrand48()`, but with a
+shared internal buffer.  Call the `seed48()` function to initialize the
+buffer before use.
 
 
 ### fake

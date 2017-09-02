@@ -63,6 +63,9 @@ rnd_alloc_fake_min(void);
 struct rnd *
 rnd_alloc_jrand48(unsigned short const state[3]);
 
+struct rnd *
+rnd_alloc_mrand48(void);
+
 void
 rnd_free(struct rnd *rnd);
 
