@@ -1,4 +1,4 @@
-/* rnd. https://github.com/donmccaughey/rnd
+/* librnd. https://github.com/donmccaughey/librnd
  Copyright (c) 2015, Don McCaughey. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without

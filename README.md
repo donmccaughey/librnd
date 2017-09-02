@@ -1,30 +1,34 @@
-rnd
-===
+librnd
+======
 
-A pseudorandom number generator abstraction for C.
+A pseudorandom number generator (PRNG) abstraction for C99.
 
+[![Build Status](https://travis-ci.org/donmccaughey/librnd.svg?branch=master)](https://travis-ci.org/donmccaughey/librnd)
 
-License
--------
-_rnd_ is made available under a BSD-style license; see the LICENSE file for 
-details.
-
+Dependencies
+------------
+`librnd` requires that `<stdlib.h>` defines the `arc4random()`, 
+`arc4random_uniform()` and `jrand48()` functions.
 
 Uniform Pseudorandom Integers
 -----------------------------
-_rnd_ generates pseudorandom 32 bit unsigned integers uniformly over a given 
+`librnd` generates pseudorandom 32 bit unsigned integers uniformly over a given 
 range.  Here is the basic usage pattern:
 
-    #include "rnd.h"
-    ...
-    
-    struct rnd *rnd = rnd_alloc();
-    
-    uint32_t number = rnd_next_uniform_value_in_range(rnd, 1, 100);
-    // number is in the interval [1, 100]
-    
-    ...
-    rnd_free(rnd);
+```c
+#include "rnd.h"
+
+// ...
+
+struct rnd *rnd = rnd_alloc();
+
+uint32_t number = rnd_next_uniform_value_in_range(rnd, 1, 100);
+// number is in the interval [1, 100]
+
+// ...
+
+rnd_free(rnd);
+```
 
 The `struct rnd` pointer holds information about the pseudorandom number 
 generator being used.  The `rnd_alloc()` function returns a `struct rnd` that 
@@ -33,36 +37,40 @@ numbers and is automatically seeded from `/dev/urandom`.
 
 The `rnd_next_uniform_value_in_range()` function produces a pseudorandom number 
 uniformly from an inclusive lower bound to an inclusive upper bound.
-[Modulo bias][1] is accounted for.
+[Modulo bias](https://en.wikipedia.org/wiki/Fisher–Yates_shuffle#Modulo_bias) 
+is accounted for.
 
 The `rnd_next_uniform_value()` function produces a number uniformly between 
 zero (inclusive) and a given exclusive upper bound:
 
-    uint32_t number = rnd_next_uniform_value(rnd, 100);
-    // number is in the interval [0, 99]
+```c
+uint32_t number = rnd_next_uniform_value(rnd, 100);
+// number is in the interval [0, 99]
+```
 
 The `rnd_next_value()` function produces a number between zero (inclusive) and 
 `UINT32_MAX` (inclusive):
 
-    uint32_t number = rnd_next_value(rnd);
-    // number is in the interval [0, 4_294_967_295]
+```c
+uint32_t number = rnd_next_value(rnd);
+// number is in the interval [0, 4_294_967_295]
+```
 
 The `global_rnd` variable points to a predefined instance of `struct rnd` that
 uses the arc4 generator.  `global_rnd` doesn't need to be allocated or freed,
 so it's useful as a step in refactoring code that uses a function like `rand()`
-or `arc4random()` to use _rnd_.
+or `arc4random()` to use `librnd`.
 
-    #include "rnd.h"
-    ...
-
-    uint32_t number = rnd_next_uniform_value(global_rnd, 100);
-    // number is in the interval [0, 99]
+```c
+uint32_t number = rnd_next_uniform_value(global_rnd, 100);
+// number is in the interval [0, 99]
+```
 
 
 Alternate Generators
 --------------------
 When testing or debugging, it can be useful to have control over the 
-pseudorandom numbers being generated.  _rnd_ provides two alternate generators.
+pseudorandom numbers being generated.  `librnd` provides two alternate generators.
 
 
 ### jrand48
@@ -73,19 +81,20 @@ creates a `struct rnd` pointer that uses `jrand48()` and the provided initial
 state.  `rnd_alloc_jrand48()` is great when you want a "normal" stream of
 pseudorandom numbers, but you want the same stream every time.
 
-    #include "rnd.h"
-    ...
+```c
+struct rnd *rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
+// initial state is 2, 3, 5
 
-    struct rnd *rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
+uint32_t number1 = rnd_next_uniform_value(rnd, 100);
+// number1 will always be 56
 
-    uint32_t number1 = rnd_next_uniform_value(rnd, 100);
-    // number1 will always be 56
+uint32_t number2 = rnd_next_uniform_value(rnd, 7);
+// number2 will always be 1
 
-    uint32_t number2 = rnd_next_uniform_value(rnd, 7);
-    // number2 will always be 1
+// ...
 
-    ...
-    rnd_free(rnd);
+rnd_free(rnd);
+```
 
 
 ### fake
@@ -106,25 +115,25 @@ pseudorandom number generators.
 
 Here is an example of `rnd_alloc_fake_median()`:
 
-    #include "rnd.h"
-    ...
+```c
+struct rnd *rnd = rnd_alloc_fake_median();
 
-    struct rnd *rnd = rnd_alloc_fake_median();
+uint32_t number1 = rnd_next_uniform_value(rnd, 100);
+// number1 will always be 50
 
-    uint32_t number1 = rnd_next_uniform_value(rnd, 100);
-    // number1 will always be 50
+uint32_t number2 = rnd_next_uniform_value(rnd, 7);
+// number2 will always be 3
 
-    uint32_t number2 = rnd_next_uniform_value(rnd, 7);
-    // number2 will always be 3
+// ...
 
-    ...
-    rnd_free(rnd);
+rnd_free(rnd);
+```
 
 
 Building rnd
 ------------
 
-_rnd_ is written in C99 and should build on most modern POSIX compatible
+`librnd` is written in C99 and should build on most modern POSIX compatible
 operating systems with a recent GCC or LLVM compiler.
 
 The source contains just two files: `rnd.h` and `rnd.c`. 
@@ -134,22 +143,27 @@ The included build system produces a static library, `librnd.a`.
 
 You must have GNU Autoconf 2.69 or later and Automate 1.14 or later installed
 
-    $ autoreconf -i
-    $ mkdir tmp && cd tmp
-    $ ../configure
-    $ make
-    $ sudo make install
+```bash
+$ autoreconf -i
+$ mkdir tmp && cd tmp
+$ ../configure
+$ make
+$ sudo make install
+```
 
 ### From Source Distribution Tarball
 
 The `rnd` distribution supports the standard GNU build steps.
 
-    $ mkdir tmp && cd tmp
-    $ ../configure
-    $ make
-    $ sudo make install
+```bash
+$ mkdir tmp && cd tmp
+$ ../configure
+$ make
+$ sudo make install
+```
 
 
-
-
-[1]: https://en.wikipedia.org/wiki/Fisher–Yates_shuffle#Modulo_bias
+License
+-------
+`librnd` is made available under a BSD-style license; see the LICENSE file for 
+details.
