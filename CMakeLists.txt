@@ -12,6 +12,6 @@ add_library(rnd
 
 
 add_executable(rnd_tests
-        test/rnd_test.c
+        rnd_tests.c
         )
 target_link_libraries(rnd_tests rnd)
