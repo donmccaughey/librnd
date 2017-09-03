@@ -5,6 +5,7 @@ autom4te.cache
 autoscan.log
 build
 build-aux
+cmake-build-debug
 config.h.*
 configure
 Makefile.in
