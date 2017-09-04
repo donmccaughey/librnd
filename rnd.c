@@ -51,7 +51,6 @@ next_arc4random_uniform_value_in_range(void *user_data,
 }
 
 
-
 #else
 
 #define RND_HAVE_ARC4 0 
@@ -63,6 +62,10 @@ next_mrand48_uniform_value_in_range(void *user_data,
                                     uint32_t inclusive_upper_bound);
 
 #endif
+
+
+typedef uint32_t
+(next_rnd_value_fn)(void *user_data);
 
 
 struct rnd *const global_rnd = &((struct rnd){
@@ -101,6 +104,21 @@ alloc_with_user_data_size(size_t size)
     rnd->free_user_data = free;
     
     return rnd;
+}
+
+
+static uint32_t
+next_uniform_value(next_rnd_value_fn *next_rnd_value,
+                   void *user_data,
+                   uint32_t normalized_exclusive_upper_bound)
+{
+    uint32_t modulo_bias = UINT32_MAX % normalized_exclusive_upper_bound;
+    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
+    uint32_t value;
+    do {
+        value = next_rnd_value(user_data);
+    } while (value > largest_multiple);
+    return value % normalized_exclusive_upper_bound;
 }
 
 
@@ -228,13 +246,9 @@ next_jrand48_value(void *user_data)
 static uint32_t
 next_jrand48_uniform_value(void *user_data, uint32_t normalized_exclusive_upper_bound)
 {
-    uint32_t modulo_bias = UINT32_MAX % normalized_exclusive_upper_bound;
-    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
-    uint32_t value;
-    do {
-        value = next_jrand48_value(user_data);
-    } while (value > largest_multiple);
-    return value % normalized_exclusive_upper_bound;
+    return next_uniform_value(next_jrand48_value,
+                              user_data,
+                              normalized_exclusive_upper_bound);
 }
 
 
@@ -276,13 +290,9 @@ next_mrand48_value(void *user_data)
 static uint32_t
 next_mrand48_uniform_value(void *user_data, uint32_t normalized_exclusive_upper_bound)
 {
-    uint32_t modulo_bias = UINT32_MAX % normalized_exclusive_upper_bound;
-    uint32_t largest_multiple = UINT32_MAX - modulo_bias;
-    uint32_t value;
-    do {
-        value = next_mrand48_value(user_data);
-    } while (value > largest_multiple);
-    return value % normalized_exclusive_upper_bound;
+    return next_uniform_value(next_mrand48_value,
+                              user_data,
+                              normalized_exclusive_upper_bound);
 }
 
 
@@ -376,4 +386,3 @@ rnd_shuffle(struct rnd *rnd,
         memcpy(item_j, temp, item_size);
     }
 }
-

@@ -42,6 +42,10 @@ main(int argc, char const *argv[])
     rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
     print_random_numbers("another rnd_alloc_jrand48({2, 3, 5})", rnd, 0, 9);
     rnd_free(rnd);
+
+    rnd = rnd_alloc_mrand48();
+    print_random_numbers("rnd_alloc_mrand()", rnd, 0, 9);
+    rnd_free(rnd);
     
     rnd = rnd_alloc_fake_min();
     print_random_numbers("rnd_alloc_fake_min()", rnd, 0, 9);
