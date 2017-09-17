@@ -7,6 +7,7 @@ librnd_a_SOURCES = rnd.c
 
 LDADD = $(lib_LIBRARIES)
 check_PROGRAMS = rnd_tests
+rnd_tests_SOURCES = rnd_tests.c test_asserts.h test_asserts.c
 TESTS = $(check_PROGRAMS)
 
 EXTRA_DIST = LICENSE README.md
