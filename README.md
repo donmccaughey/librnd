@@ -57,7 +57,7 @@ uint32_t number = rnd_next_value(rnd);
 ```
 
 The `global_rnd` variable points to a predefined instance of `struct rnd` that
-uses the arc4 generator.  `global_rnd` doesn't need to be allocated or freed,
+uses the default generator.  `global_rnd` doesn't need to be allocated or freed,
 so it's useful as a step in refactoring code that uses a function like `rand()`
 or `arc4random()` to use `librnd`.
 
