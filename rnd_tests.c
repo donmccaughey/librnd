@@ -1,88 +1,253 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "rnd.h"
 
 
-void
-print_random_numbers(char const *description,
-                     struct rnd *rnd,
-                     uint32_t inclusive_lower_bound,
-                     uint32_t inclusive_upper_bound)
+#define ASSERT_SEQUENCE(EXPECTED_VALUES, ACTUAL_VALUES, COUNT) \
+    assert_sequence((EXPECTED_VALUES), \
+                    (ACTUAL_VALUES), \
+                    (COUNT), \
+                    __FILE__, \
+                    __LINE__)
+
+#define ASSERT_RANDOM_SEQUENCE(RND, \
+                               INCLUSIVE_LOWER_BOUND, \
+                               INCLUSIVE_UPPER_BOUND, \
+                               EXPECTED_VALUES, \
+                               COUNT) \
+    assert_random_sequence((RND), \
+                           (INCLUSIVE_LOWER_BOUND), \
+                           (INCLUSIVE_UPPER_BOUND), \
+                           (EXPECTED_VALUES), \
+                           (COUNT), \
+                           __FILE__, \
+                           __LINE__)
+
+#define ASSERT_IN_RANGE(RND, INCLUSIVE_LOWER_BOUND, \
+                        INCLUSIVE_UPPER_BOUND, \
+                        COUNT) \
+    assert_in_range((RND), \
+                    (INCLUSIVE_LOWER_BOUND), \
+                    (INCLUSIVE_UPPER_BOUND), \
+                    (COUNT), \
+                    __FILE__, \
+                    __LINE__)
+
+
+static void
+assert_sequence(uint32_t *expected_values,
+                uint32_t *actual_values,
+                int count,
+                char const *file,
+                int line)
 {
-    printf("%s in [%lu, %lu]\n",
-           description,
-           (unsigned long)inclusive_lower_bound,
-           (unsigned long)inclusive_upper_bound);
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < count; ++i) {
+        if (expected_values[i] != actual_values[i]) {
+            fprintf(stderr,
+                    "%s:%i: FAILURE: index %i: expected %lu, found %lu\n",
+                    file, line, i,
+                    (unsigned long)expected_values[i],
+                    (unsigned long)actual_values[i]);
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
+
+static void
+assert_random_sequence(struct rnd *rnd,
+                       uint32_t inclusive_lower_bound,
+                       uint32_t inclusive_upper_bound,
+                       uint32_t *expected_values,
+                       int count,
+                       char const *file,
+                       int line)
+{
+    uint32_t actual_values[count];
+    for (int i = 0; i < count; ++i) {
+        actual_values[i] = rnd_next_uniform_value_in_range(rnd,
+                                                           inclusive_lower_bound,
+                                                           inclusive_upper_bound);
+    }
+    assert_sequence(expected_values, actual_values, count, file, line);
+}
+
+
+static void
+assert_in_range(struct rnd *rnd,
+                uint32_t inclusive_lower_bound,
+                uint32_t inclusive_upper_bound,
+                int count,
+                char const *file,
+                int line)
+{
+    for (int i = 0; i < count; ++i) {
         uint32_t n = rnd_next_uniform_value_in_range(rnd,
                                                      inclusive_lower_bound,
                                                      inclusive_upper_bound);
-        printf("%lu, ", (unsigned long)n);
+        if (n < inclusive_lower_bound || n > inclusive_upper_bound) {
+            fprintf(stderr,
+                    "%s:%i: FAILURE: index %i: %lu is outside range [%lu, %lu]\n",
+                    file, line, i, (unsigned long)n,
+                    (unsigned long)inclusive_lower_bound,
+                    (unsigned long)inclusive_upper_bound);
+            exit(EXIT_FAILURE);
+        }
     }
-    printf("\n\n");
+}
+
+
+static void
+test_global_rnd(void)
+{
+    ASSERT_IN_RANGE(global_rnd, 0, 9, 1000);
+    ASSERT_IN_RANGE(global_rnd, 7, 2819, 100000);
+}
+
+
+static void
+test_rnd_alloc(void)
+{
+    struct rnd *rnd = rnd_alloc();
+    ASSERT_IN_RANGE(rnd, 0, 9, 1000);
+    ASSERT_IN_RANGE(rnd, 5171, 5810, 100000);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_jrand48(void)
+{
+    struct rnd *rnd = rnd_alloc_jrand48((unsigned short[]){ 2, 3, 5 });
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 6, 2, 8, 6, 1, 0, 3, 7, 8, 9 }), 10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_mrand48(void)
+{
+    struct rnd *rnd = rnd_alloc_mrand48();
+    ASSERT_IN_RANGE(rnd, 0, 9, 1000);
+    ASSERT_IN_RANGE(rnd, 5171, 5810, 100000);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_fake_min(void)
+{
+    struct rnd *rnd = rnd_alloc_fake_min();
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }), 10);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 17, 17, 17, 17, 17, 17, 17, 17, 17, 17 }),
+                           10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_fake_median(void)
+{
+    struct rnd *rnd = rnd_alloc_fake_median();
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5 }), 10);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 44, 44, 44, 44, 44, 44, 44, 44, 44, 44 }),
+                           10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_fake_max(void)
+{
+    struct rnd *rnd = rnd_alloc_fake_max();
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 }), 10);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 71, 71, 71, 71, 71, 71, 71, 71, 71, 71 }),
+                           10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_fake_fixed(void)
+{
+    struct rnd *rnd = rnd_alloc_fake_fixed(7);
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 7, 7, 7, 7, 7, 7, 7, 7, 7, 7 }), 10);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 24, 24, 24, 24, 24, 24, 24, 24, 24, 24 }),
+                           10);
+    rnd_free(rnd);
+
+    rnd = rnd_alloc_fake_fixed(1003);
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 }), 10);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30 }),
+                           10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_alloc_fake_ascending(void)
+{
+    struct rnd *rnd = rnd_alloc_fake_ascending(3);
+    ASSERT_RANDOM_SEQUENCE(rnd, 0, 9,
+                           ((uint32_t[]){ 3, 4, 5, 6, 7, 8, 9, 0, 1, 2 }), 10);
+    rnd_free(rnd);
+
+    rnd = rnd_alloc_fake_ascending(3);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 }),
+                           10);
+    rnd_free(rnd);
+
+    rnd = rnd_alloc_fake_ascending(5);
+    ASSERT_RANDOM_SEQUENCE(rnd, 10, 19,
+                           ((uint32_t[]){ 15, 16, 17, 18, 19, 10, 11, 12, 13, 14 }),
+                           10);
+    rnd_free(rnd);
+
+    rnd = rnd_alloc_fake_ascending(50);
+    ASSERT_RANDOM_SEQUENCE(rnd, 17, 71,
+                           ((uint32_t[]){ 67, 68, 69, 70, 71, 17, 18, 19, 20, 21 }),
+                           10);
+    rnd_free(rnd);
+}
+
+
+static void
+test_rnd_shuffle(void)
+{
+    uint32_t numbers[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    struct rnd *rnd = rnd_alloc_jrand48((unsigned short[]){ 2, 3, 5 });
+    rnd_shuffle(rnd, numbers, 10, sizeof(uint32_t));
+    rnd_free(rnd);
+    uint32_t expected[] = { 6, 2, 4, 8, 7, 5, 1, 9, 3, 0 };
+    ASSERT_SEQUENCE(expected, numbers, 10);
 }
 
 
 int
 main(int argc, char const *argv[])
 {
-    print_random_numbers("global_rnd", global_rnd, 0, 9);
-    
-    print_random_numbers("global_rnd", global_rnd, 10, 29);
-    
-    struct rnd *rnd = rnd_alloc();
-    print_random_numbers("rnd_alloc()", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
-    print_random_numbers("rnd_alloc_jrand48({2, 3, 5})", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_jrand48((unsigned short[]){2, 3, 5});
-    print_random_numbers("another rnd_alloc_jrand48({2, 3, 5})", rnd, 0, 9);
-    rnd_free(rnd);
-
-    rnd = rnd_alloc_mrand48();
-    print_random_numbers("rnd_alloc_mrand()", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_min();
-    print_random_numbers("rnd_alloc_fake_min()", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_median();
-    print_random_numbers("rnd_alloc_fake_median()", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_max();
-    print_random_numbers("rnd_alloc_fake_max()", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_fixed(7);
-    print_random_numbers("rnd_alloc_fake_fixed(7)", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_fixed(13);
-    print_random_numbers("rnd_alloc_fake_fixed(13)", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_ascending(3);
-    print_random_numbers("rnd_alloc_fake_ascending(3)", rnd, 0, 9);
-    rnd_free(rnd);
-    
-    rnd = rnd_alloc_fake_ascending(5);
-    print_random_numbers("rnd_alloc_fake_ascending(5)", rnd, 10, 19);
-    rnd_free(rnd);
-    
-    int numbers[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    size_t numbers_count = sizeof numbers / sizeof numbers[0];
-    rnd_shuffle(global_rnd, numbers, numbers_count, sizeof(int));
-    printf("shuffled numbers: ");
-    for (int i = 0; i < (int)numbers_count; ++i) {
-        printf("%i, ", numbers[i]);
-    }
-    printf("\n\n");
-    
+    test_global_rnd();
+    test_rnd_alloc();
+    test_alloc_jrand48();
+    test_alloc_mrand48();
+    test_alloc_fake_min();
+    test_alloc_fake_median();
+    test_alloc_fake_max();
+    test_alloc_fake_fixed();
+    test_alloc_fake_ascending();
+    test_rnd_shuffle();
     return EXIT_SUCCESS;
 }

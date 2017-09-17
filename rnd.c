@@ -53,7 +53,7 @@ next_arc4random_uniform_value_in_range(void *user_data,
 
 #else
 
-#define RND_HAVE_ARC4 0 
+#define RND_HAVE_ARC4 0
 #define RND_NEXT_UNIFORM_VALUE_IN_RANGE next_mrand48_uniform_value_in_range
 
 static uint32_t
