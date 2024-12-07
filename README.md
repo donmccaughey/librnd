@@ -1,3 +1,10 @@
+__*** Archived *** Archived *** Archived ***__
+
+I've rebuilt this library from the ground up and renamed it to `lrnd`.  Please find it at https://git.sr.ht/~donmcc/lrnd.
+
+__*** Archived *** Archived *** Archived ***__
+
+
 librnd
 ======
 
